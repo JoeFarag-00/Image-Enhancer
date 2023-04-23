@@ -117,7 +117,108 @@ class Enhance_Image:
         mean_intensity = sum_intensity / (height * width)
         print(f"Global Mean Intensity: {mean_intensity}")
         return mean_intensity
+        
+    def Enhance_Image(self):
 
+        self.Image_BitList = np.array(self.Original_image)
+        height, width = self.Image_BitList.shape[:2]
+        self.Kernel = [[0 for c in range(3)] for r in range(3)]
+        Global_Mean = self.Get_Global_Mean()
+        Global_SD = self.Get_Global_Deviation(Global_Mean)
+        
+        LocalSD_List = []
+        LocalMean_List = []
+        
+        self.Enhanced_BitList = self.Image_BitList
+        
+        itct = 0
+        
+        for rm in range(width):
+            for cm in range(height):
+                
+                self.Kernel.clear()
+                self.Kernel = [[0 for rk in range(3)] for ck in range(3)]
+                self.Kernel[1][1] = self.Image_BitList[rm][cm]
+                
+                for rk in range(3):
+                    for ck in range(3):
+                        
+                        if rk != 1 or ck != 1:
+                            x = rm + rk - 1
+                            y = cm + ck - 1
+                            if x >= 0 and x < width and y >= 0 and y < height:
+                                self.Kernel[rk][ck] = self.Image_BitList[x][y]
+                                
+                Tot_Intensity = 0
+                Local_Mean = 0
+                intensity = 0
+                Local_SD = 0
+                sum_sq_diff = 0
+                variance = 0
+                sq_diff = 0
+                
+                for i in range(3):
+                    for j in range(3):
+                        intensity =  self.Kernel[i][j]
+                        Tot_Intensity += intensity
+        
+                Local_Mean = Tot_Intensity / 9
+
+                # self.Kernel[1][1] = Avg_Intensity
+                
+                for r in range(3):
+                    for c in range(3):
+                        intensity = self.Kernel[r][c]
+                        sq_diff = (intensity - Local_Mean) ** 2
+                        sum_sq_diff += sq_diff
+                        
+                variance = sum_sq_diff / 9
+                Local_SD = math.sqrt(variance)
+                
+                LocalSD_List.append(Local_SD)
+                LocalMean_List.append(Local_Mean)
+            
+                
+                if Local_Mean <= (self.K0 * Global_Mean) and Local_SD >= (self.K1 * Global_SD) and Local_SD <= (self.K2 * Global_SD):
+                    self.Kernel[1][1] = self.E * self.Kernel[1][1]
+                    self.Enhanced_BitList[rm][cm] = self.Kernel[1][1] 
+                
+                
+                itct+=1  
+                # print(self.Kernel)
+                # print(Local_Mean)
+                # print(Local_SD)
+
+            #     if(itct == 20):
+            #         break
+            # if(itct == 20):
+            #     break
+            
+        
+        print("Local Average Intensity: ")
+        print(np.array(LocalMean_List))
+        
+        print("\n")
+
+        print("Local Standard Deviations: ")
+        print(np.array(LocalSD_List))
+
+        print("\n")
+        
+        print("Original BitList: ")
+        print(self.Image_BitList)
+        
+        print("\n")
+        
+        print("Enhanced BitList: ")
+        print(self.Enhanced_BitList)
+        
+        enhanced_image = Image.fromarray(self.Enhanced_BitList)
+        enhanced_photo = ImageTk.PhotoImage(enhanced_image)
+        enhanced_label = tk.Label(self.Generated_Frame, image=enhanced_photo)
+        enhanced_label.image = enhanced_photo
+        enhanced_label.pack()
+   
     def ResetWindow(self):
         root.destroy()
         os.system('main.py')
