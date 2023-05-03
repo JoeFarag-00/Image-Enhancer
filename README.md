@@ -1,5 +1,5 @@
 # Image-Enhancer
-An Image Enhancer using a histogram equalization method. Made from scratch using CV2 and Tkinter
+An Image Enhancer using a histogram equalization method. Made from scratch using CV2 and Tk.
 
 1. Load Image
 2. Load Values
